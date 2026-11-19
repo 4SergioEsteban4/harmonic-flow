@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harmonic Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+
+<div class="app">
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <h1>Harmonic Flow</h1>
+    <div class="main-tabs">
+      <button class="main-tab active" data-tab="hf">diapasón</button>
+      <button class="main-tab" data-tab="metro">metrónomo</button>
+      <button class="main-tab" data-tab="prog">progresiones</button>
+      <button class="main-tab" data-tab="quiz">quiz caged</button>
+    </div>
+    <div class="icon-bar">
+      <button class="icon-btn" id="libBtn">📖 biblioteca</button>
+      <button class="icon-btn" id="starOptionsBtn">★ estrellas</button>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB: HARMONIC FLOW ══════════ -->
+  <div class="tab-panel active" id="panel-hf">
+    <div class="hf-ctrl-row">
+      <select class="select-box" id="tonicSel">
+        <option>C</option><option>C#</option><option>D</option><option>Eb</option>
+        <option>E</option><option>F</option><option>F#</option><option>G</option>
+        <option>Ab</option><option>A</option><option>Bb</option><option>B</option>
+      </select>
+      <select class="select-box" id="modeSel">
+        <option value="major">Mayor (Jónico)</option>
+        <option value="minor">Eólico (menor nat.)</option>
+      </select>
+      <button class="tag-btn active" id="triadBtn">Tríadas</button>
+      <button class="tag-btn" id="seventhBtn">Séptimas</button>
+      <div class="bpm-mini">
+        <label>BPM</label>
+        <input type="range" id="hf-bpmSlider" min="40" max="200" value="80">
+        <span id="hf-bpmVal">80</span>
+      </div>
+      <button class="tap-btn" id="tapBtn">TAP</button>
+    </div>
+    <div class="hf-grid">
+      <!-- LEFT: CHORD STAGE -->
+      <div class="chord-stage">
+        <div class="stage-header">acorde actual</div>
+        <div class="chord-main">
+          <div class="chord-roman" id="chordRoman">—</div>
+          <div class="chord-info">
+            <div class="chord-quality" id="chordQuality">—</div>
+            <div class="chord-notes" id="chordNotes">—</div>
+            <div class="chord-type-badge triad" id="chordBadge">tríada</div>
+          </div>
+        </div>
+        <div class="link-row" id="linkRow">
+          <div class="link-none">toca play para empezar</div>
+        </div>
+        <div class="next-section">
+          <div class="next-label">próxima nota</div>
+          <div class="next-card" id="nextCard">
+            <div class="next-roman" id="nextRoman">—</div>
+            <div class="next-info">
+              <div class="next-quality" id="nextQuality"></div>
+              <div class="next-notes-preview" id="nextNotesPreview"></div>
+            </div>
+            <button class="next-change-btn" id="nextChangeBtn">cambiar ↕</button>
+          </div>
+          <div class="next-picker" id="nextPicker">
+            <div class="picker-grid" id="pickerGrid"></div>
+          </div>
+        </div>
+        <div class="prog-bar-wrap">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="beat-dots" id="hf-beatDots"></div>
+            <div class="bars-txt" id="hf-barsTxt"></div>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" id="hf-progFill"></div></div>
+        </div>
+        <div class="history-row" id="historyRow">—</div>
+        <div class="hf-play-row">
+          <button class="play-btn" id="hf-playBtn">&#9654;</button>
+          <button class="reset-btn" id="hf-resetBtn">
+            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.36 2.64L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
+            reiniciar
+          </button>
+          <div class="sig-btns" id="hf-sigBtns">
+            <button class="sig-btn" data-beats="2">2/4</button>
+            <button class="sig-btn active" data-beats="4">4/4</button>
+            <button class="sig-btn" data-beats="3">3/4</button>
+          </div>
+          <div class="bars-slider-row">
+            <span>compases</span>
+            <input type="range" id="hf-barsSlider" min="1" max="8" value="2">
+            <span id="hf-barsVal">2</span>
+          </div>
+        </div>
+      </div>
+      <!-- RIGHT: FRETBOARD -->
+      <div class="fret-panel">
+        <div class="stage-header">diapasón</div>
+        <div class="fretboard-wrap">
+          <canvas id="hf-fretboard"></canvas>
+        </div>
+        <div class="stage-header" style="margin-top:.3rem;">escala mayor — posiciones</div>
+        <div class="scale-pos-controls">
+          <button class="fret-opt active" id="scalePosAll">todas</button>
+          <button class="fret-opt" id="scalePos0" data-pos="0">C</button>
+          <button class="fret-opt" id="scalePos1" data-pos="1">A</button>
+          <button class="fret-opt" id="scalePos2" data-pos="2">G</button>
+          <button class="fret-opt" id="scalePos3" data-pos="3">E</button>
+          <button class="fret-opt" id="scalePos4" data-pos="4">D</button>
+          <button class="fret-opt active" id="scalePosNonScale">no escala</button>
+        </div>
+        <div class="fret-opts-row" id="fretOpts">
+  <button class="fret-opt active" data-type="root">raíz</button>
+  <button class="fret-opt active" data-type="third">3ª</button>
+  <button class="fret-opt active" data-type="fifth">5ª</button>
+  <button class="fret-opt active" data-type="seventh">7ª</button>
+  <button class="fret-opt" data-type="link">enlace</button>
+</div>
+        <div class="caged-wrap">
+          <canvas id="hf-cagedCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB: METRÓNOMO ══════════ -->
+  <div class="tab-panel" id="panel-metro">
+    <div class="metro-layout">
+      <div class="metro-mode-tabs">
+        <button class="metro-mode-tab active" data-mpanel="grados">grados</button>
+        <button class="metro-mode-tab" data-mpanel="caged">full practice</button>
+      </div>
+
+      <!-- PANEL GRADOS -->
+      <div class="metro-panel active" id="mpanel-grados">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div class="random-num" id="rndNum">—</div>
+          <div class="label-num">grado del compás</div>
+        </div>
+        <div class="histogram" id="histogram"></div>
+        <div class="metro-bottom-row">
+          <div class="cycle-badge" id="cycleBadge">✦ ciclo completado</div>
+          <div class="right-controls">
+            <div class="auto-reset-row">
+              <input type="checkbox" id="autoResetChk">
+              <label for="autoResetChk">auto</label>
+            </div>
+            <div class="reset-counter" id="resetCounter">×0</div>
+            <button class="reset-btn" id="metro-resetBtn" style="font-size:11px;padding:4px 10px;">reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL CAGED full practice -->
+      <div class="metro-panel" id="mpanel-caged">
+        <div class="caged-mode-btns">
+          <button class="caged-mode-btn active" data-cmode="endless">endless</button>
+          <button class="caged-mode-btn" data-cmode="complete">completo</button>
+        </div>
+        <div class="caged-stage">
+          <div class="caged-shape-label">forma CAGED · grado</div>
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div class="caged-arrow hidden" id="cagedArrowLeft"></div>
+            <div class="caged-shape" id="cagedShape">—</div>
+            <div class="caged-arrow hidden" id="cagedArrowRight"></div>
+          </div>
+          <div class="caged-degree" id="cagedDegree">—</div>
+          <div class="caged-sub" id="cagedSub">toca play para empezar</div>
+        </div>
+        <div class="caged-progress-wrap" id="cagedProgressWrap"></div>
+        <div style="display:flex;justify-content:flex-end;width:100%;">
+          <button class="dir-toggle on" id="dirToggle">flechas ✓</button>
+        </div>
+        <div class="caged-complete-badge" id="cagedCompleteBadge">★ CAGED completo — 35/35</div>
+      </div>
+
+      <!-- SHARED METRO CONTROLS -->
+      <canvas id="pendulumCanvas" width="300" height="280"></canvas>
+      <div class="metro-beat-dots" id="metro-beatDots"></div>
+      <div class="metro-controls">
+        <div class="metro-bpm-row">
+          <label>BPM</label>
+          <input type="range" id="metro-bpmSlider" min="40" max="220" value="100" step="1">
+          <span class="metro-bpm-val" id="metro-bpmVal">100</span>
+        </div>
+        <div class="metro-sig-btns" id="metro-sigBtns">
+          <button class="metro-sig-btn" data-beats="2">2/4</button>
+          <button class="metro-sig-btn active" data-beats="4">4/4</button>
+          <button class="metro-sig-btn" data-beats="3">3/4</button>
+          <button class="metro-sig-btn" data-beats="6">6/8</button>
+        </div>
+        <div class="metro-play-row">
+          <button class="metro-play-btn" id="metro-playBtn">&#9654;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB: PROGRESIONES ══════════ -->
+  <div class="tab-panel" id="panel-prog">
+    <div class="prog-shell">
+      <div class="mood-row" id="pr-moodRow">
+        <button class="mood-btn active" data-mood="happy">happy</button>
+        <button class="mood-btn" data-mood="sad">sad</button>
+        <button class="mood-btn" data-mood="tense">tense</button>
+        <button class="mood-btn" data-mood="epic">epic</button>
+        <button class="mood-btn" data-mood="jazzy">jazzy</button>
+        <button class="mood-btn" data-mood="random">random</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:.3rem;" id="pr-tonicRow"></div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:.3rem;" id="pr-soundRow"></div>
+      <div class="prog-top-row">
+        <div class="scale-btns" id="pr-scaleBtns">
+          <button class="scale-btn active" data-scale="major">mayor</button>
+          <button class="scale-btn" data-scale="minor">menor</button>
+          <button class="scale-btn" data-scale="random">random</button>
+        </div>
+        <div class="bpm-mini" style="margin-left:auto;">
+          <label>BPM</label>
+          <input type="range" id="pr-bpmSlider" min="40" max="200" value="90" step="1">
+          <span id="pr-bpmVal">90</span>
+        </div>
+      </div>
+      <div class="prog-bars-row">
+        <label>compases / grado</label>
+        <input type="range" id="pr-barsSlider" min="1" max="8" value="2" step="1">
+        <span id="pr-barsVal">2</span>
+      </div>
+      <div class="prog-stage">
+        <div class="prog-stage-label">grado actual</div>
+        <div class="prog-chord-display" id="pr-chordDisplay">—</div>
+        <div class="prog-chord-name" id="pr-chordName">elige mood y toca play</div>
+        <div class="prog-progress-bar"><div class="prog-progress-fill" id="pr-progFill"></div></div>
+        <div class="prog-bars-counter" id="pr-barsCounter"></div>
+        <div class="prog-beat-row" id="pr-beatRow"></div>
+        <div class="prog-cycle-badge" id="pr-cycleBadge">ciclo completado</div>
+      </div>
+      <div class="next-grid-label">¿a dónde vas?</div>
+      <div class="next-deg-grid" id="pr-nextGrid"></div>
+      <div class="prog-controls">
+        <button class="play-btn" id="pr-playBtn">&#9654;</button>
+        <div class="prog-history" id="pr-progHistory">—</div>
+        <button class="new-prog-btn" id="pr-newProgBtn">nueva prog</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB: QUIZ CAGED ══════════ -->
+  <div class="tab-panel" id="panel-quiz">
+    <div class="quiz-shell">
+      <div class="quiz-top-row">
+        <div class="quiz-shape-label">forma:</div>
+        <div class="quiz-shape-badge" id="quizShapeBadge">C</div>
+        <div class="quiz-score" id="quizScore">0 / 0</div>
+        <div class="quiz-streak" id="quizStreak">racha: 0</div>
+      </div>
+      <div class="quiz-target-stage">
+        <div class="quiz-target-label">encuentra la nota</div>
+        <div class="quiz-target-note" id="quizTargetNote">—</div>
+        <div class="quiz-feedback" id="quizFeedback">toca play para empezar</div>
+      </div>
+      <div class="quiz-fret-wrap">
+        <canvas id="quizCanvas"></canvas>
+      </div>
+      <div class="quiz-controls">
+        <button class="play-btn" id="quizPlayBtn">&#9654;</button>
+        <button class="new-prog-btn" id="quizSkipBtn">saltar</button>
+        <button class="new-prog-btn" id="quizResetBtn">reiniciar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BIBLIOTECA MODAL -->
+<div class="modal-overlay" id="libOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📖 Biblioteca de Acordes</div>
+      <button class="modal-close" id="libClose">✕</button>
+    </div>
+    <!-- Controles superiores -->
+    <div class="lib-controls">
+      <select class="select-box" id="libTonicSel">
+        <option>C</option><option>C#</option><option>D</option><option>Eb</option>
+        <option>E</option><option>F</option><option>F#</option><option>G</option>
+        <option>Ab</option><option>A</option><option>Bb</option><option>B</option>
+      </select>
+      <select class="select-box" id="libModeSel">
+        <option value="major">Mayor</option>
+        <option value="minor">Menor</option>
+      </select>
+      <span style="font-size:10px;color:var(--muted);margin-left:4px;">selecciona dos acordes →</span>
+    </div>
+
+    <!-- Grid de acordes de la escala -->
+    <div class="lib-grid" id="libGrid"></div>
+
+    <!-- Detalle de comparación -->
+    <div class="lib-detail" id="libDetail" style="display:none;">
+
+      <!-- Acorde A -->
+      <div class="lib-chord-box box-a" id="libBoxA">
+        <div style="font-size:9px;letter-spacing:.1em;color:var(--blue);text-transform:uppercase;margin-bottom:6px;">acorde A</div>
+        <div class="lib-chord-name" id="libNameA">—</div>
+        <div class="lib-chord-sub" id="libSubA"></div>
+        <!-- Notas escala completa activables A -->
+        <div style="margin-top:8px;">
+          <div style="font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">notas activas</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;" id="libNotesPickerA"></div>
+        </div>
+        <!-- Añadir cromatica A -->
+        <div style="display:flex;gap:6px;align-items:center;margin-top:6px;">
+          <select class="select-box" id="libAddNoteA" style="font-size:10px;padding:3px 6px;">
+            <option value="">+ nota cromática</option>
+          </select>
+        </div>
+        <div style="font-size:10px;color:var(--gold);margin-top:4px;" id="libFinalNotesA"></div>
+      </div>
+
+      <!-- Enlace -->
+      <div class="lib-link-panel" id="libLinkPanel">
+        <div class="lib-link-title">notas en común</div>
+        <div class="lib-link-notes" id="libLinkNotes"></div>
+        <div style="font-size:9px;color:var(--dim);margin-top:4px;" id="libLinkDesc"></div>
+      </div>
+
+      <!-- Acorde B -->
+      <div class="lib-chord-box box-b" id="libBoxB">
+        <div style="font-size:9px;letter-spacing:.1em;color:var(--pink);text-transform:uppercase;margin-bottom:6px;">acorde B</div>
+        <div class="lib-chord-name" id="libNameB">—</div>
+        <div class="lib-chord-sub" id="libSubB"></div>
+        <!-- Notas escala completa activables B -->
+        <div style="margin-top:8px;">
+          <div style="font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">notas activas</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;" id="libNotesPickerB"></div>
+        </div>
+        <!-- Añadir cromatica B -->
+        <div style="display:flex;gap:6px;align-items:center;margin-top:6px;">
+          <select class="select-box" id="libAddNoteB" style="font-size:10px;padding:3px 6px;">
+            <option value="">+ nota cromática</option>
+          </select>
+        </div>
+        <div style="font-size:10px;color:var(--gold);margin-top:4px;" id="libFinalNotesB"></div>
+      </div>
+    </div>
+
+    <!-- Fretboard opts -->
+    <div class="lib-fret-wrap">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;" id="libFretShowBtns">
+  <button class="fret-opt active" data-type="root">raíz</button>
+  <button class="fret-opt active" data-type="third">3ª</button>
+  <button class="fret-opt active" data-type="fifth">5ª</button>
+  <button class="fret-opt active" data-type="seventh">7ª</button>
+  <button class="fret-opt active" data-type="link">enlace</button>
+</div>
+      <canvas id="libFretboard"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- STAR OPTIONS MODAL -->
+<div class="star-modal-overlay" id="starOverlay">
+  <div class="star-modal">
+    <div class="star-modal-title">
+      ★ estrellas
+      <button class="star-modal-close" id="starModalClose">✕</button>
+    </div>
+    <div class="sm-row">
+      <div class="sm-label">cantidad</div>
+      <div class="star-count-display" id="starCountDisplay"></div>
+      <div class="sm-btns">
+        <button class="sm-btn" id="starAdd">+ añadir</button>
+        <button class="sm-btn" id="starRemove">− quitar</button>
+        <button class="sm-btn" id="starClear">limpiar</button>
+      </div>
+    </div>
+    <div class="sm-row">
+      <div class="sm-label">tamaño</div>
+      <div class="sm-slider-row">
+        <input type="range" id="starSizeSlider" min="8" max="200" value="26">
+        <span id="starSizeVal">26</span>
+      </div>
+    </div>
+    <div class="sm-row">
+      <div class="sm-label">velocidad</div>
+      <div class="sm-slider-row">
+        <input type="range" id="starSpeedSlider" min="1" max="100" value="8">
+        <span id="starSpeedVal">5</span>
+      </div>
+    </div>
+    <div class="sm-row">
+      <div class="sm-label">forma</div>
+      <div class="sm-btns" id="starShapeBtns">
+        <button class="sm-btn active" data-shape="★">★</button>
+        <button class="sm-btn" data-shape="✦">✦</button>
+        <button class="sm-btn" data-shape="✸">✸</button>
+        <button class="sm-btn" data-shape="⬟">⬟</button>
+        <button class="sm-btn" data-shape="♦">♦</button>
+        <button class="sm-btn" data-shape="✺">✺</button>
+      </div>
+    </div>
+    <div class="sm-row">
+      <div class="sm-label">spin</div>
+      <div class="sm-btns" id="starSpinBtns">
+        <button class="sm-btn active" data-spin="normal">normal</button>
+        <button class="sm-btn" data-spin="fast">rápido</button>
+        <button class="sm-btn" data-spin="slow">suave</button>
+        <button class="sm-btn" data-spin="none">nada</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/globals.js"></script>
+<script src="js/index.js"></script>
+<script src="js/harmonic.js"></script>
+<script src="js/metronomo.js"></script>
+<script src="js/progression.js"></script>
+<script src="js/quiz.js"></script>
+</body>
+</html>
